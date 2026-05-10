@@ -1,19 +1,22 @@
-import './App.css'
-import CsvReader from './components/CsvReader'
+import { useState } from "react";
+import CsvReader from "./components/CsvReader";
+import type { CsvRow } from "./components/CsvReader";
+import CourseScheduler from "./components/CourseSchedule";
 
-function App() {
+import Nav from "./components/Nav";
+
+export default function App() {
+  const [courses, setCourses] = useState<CsvRow[]>([]);
 
   return (
-    <>
-      <div>
-        <h1 className="text-3xl font-bold underline">
-          Hello world!
-        </h1>
+    <div>
+      <Nav />
+      <CsvReader onDataLoaded={setCourses} />
 
-        <CsvReader />
-      </div>
-    </>
-  )
+      {/* <h1>Courses</h1> */}
+
+      {/* <pre>{JSON.stringify(courses, null, 2)}</pre> */}
+      <CourseScheduler courses={courses} />
+    </div>
+  );
 }
-
-export default App

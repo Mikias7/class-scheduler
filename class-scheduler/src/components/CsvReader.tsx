@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from "react";
+declare module 'papaparse';
+
+import { useEffect } from "react";
 import Papa, { ParseResult } from "papaparse";
 
-type CsvRow = {
+export type CsvRow = {
   [key: string]: string;
 };
 
-export default function CsvReader() {
-  const [data, setData] = useState<CsvRow[]>([]);
+type CsvReaderProps = {
+  onDataLoaded: (data: CsvRow[]) => void;
+};
 
+export default function CsvReader({
+  onDataLoaded,
+}: CsvReaderProps) {
   useEffect(() => {
     Papa.parse<CsvRow>("/FA26 Schedule - Sheet1.csv", {
       download: true,
@@ -15,16 +21,10 @@ export default function CsvReader() {
       skipEmptyLines: true,
 
       complete: (results: ParseResult<CsvRow>) => {
-        setData(results.data);
+        onDataLoaded(results.data);
       },
     });
-  }, []);
+  }, [onDataLoaded]);
 
-  return (
-    <div>
-      <h2>CSV Data</h2>
-
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
+  return null;
 }
