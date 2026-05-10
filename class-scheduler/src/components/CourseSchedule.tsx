@@ -282,10 +282,18 @@ export default function CourseScheduler({ courses }: { courses: CsvRow[] }) {
 
   const colorMap = Object.fromEntries(scheduled.map((c, i) => [courseKey(c), COLORS[i % COLORS.length]]));
 
+  const CREDIT_CAP = 18;
+  const totalCredits = scheduled.reduce((s, c) => s + parseInt(c["Credits"] ?? "0"), 0);
+
   const addCourse = (course: CsvRow) => {
     const key = courseKey(course);
     if (scheduled.find((c) => courseKey(c) === key)) {
       showToast("This course is already on your schedule.", "error");
+      return;
+    }
+    const incomingCredits = parseInt(course["Credits"] ?? "0");
+    if (totalCredits + incomingCredits > CREDIT_CAP) {
+      showToast(`Credit limit reached — adding this course would exceed the ${CREDIT_CAP}-credit maximum (currently at ${totalCredits}).`, "error");
       return;
     }
     const conflict = scheduled.find((c) => overlap(c, course));
@@ -308,7 +316,6 @@ export default function CourseScheduler({ courses }: { courses: CsvRow[] }) {
     setFilters({ prefix: "", credits: "", professor: "", days: "", time: "" });
 
   const anyFilter = Object.values(filters).some(Boolean);
-  const totalCredits = scheduled.reduce((s, c) => s + parseInt(c["Credits"]), 0);
 
   const hours = Array.from({ length: END_H - START_H }, (_, i) => START_H + i);
   const gridH = (END_H - START_H) * SLOT_H;
@@ -332,13 +339,15 @@ export default function CourseScheduler({ courses }: { courses: CsvRow[] }) {
           <p style={{ margin: "1px 0 0", fontSize: 11, color: "#777" }}>Fall 2026 · Drag courses to your schedule or click Add</p>
         </div>
         {scheduled.length > 0 && (
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
             <div style={{ textAlign: "right", fontSize: 12, color: "#555" }}>
               <strong style={{ display: "block", fontSize: 16, fontWeight: 500, color: "#111" }}>{scheduled.length}</strong>
               courses
             </div>
             <div style={{ textAlign: "right", fontSize: 12, color: "#555" }}>
-              <strong style={{ display: "block", fontSize: 16, fontWeight: 500, color: "#111" }}>{totalCredits}</strong>
+              <strong style={{ display: "block", fontSize: 16, fontWeight: 500, color: totalCredits >= CREDIT_CAP ? "#A32D2D" : totalCredits >= CREDIT_CAP - 3 ? "#854F0B" : "#111" }}>
+                {totalCredits} / {CREDIT_CAP}
+              </strong>
               credits
             </div>
           </div>
